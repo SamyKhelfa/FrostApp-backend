@@ -1,0 +1,21 @@
+[debug] [2023-11-27T13:52:47.332Z] ----------------------------------------------------------------------
+[debug] [2023-11-27T13:52:47.335Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\thebb\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init
+[debug] [2023-11-27T13:52:47.335Z] CLI Version:   12.9.1
+[debug] [2023-11-27T13:52:47.336Z] Platform:      win32
+[debug] [2023-11-27T13:52:47.336Z] Node Version:  v18.17.0
+[debug] [2023-11-27T13:52:47.337Z] Time:          Mon Nov 27 2023 14:52:47 GMT+0100 (heure normale d’Europe centrale)
+[debug] [2023-11-27T13:52:47.337Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2023-11-27T13:52:47.343Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2023-11-27T13:52:47.344Z] > authorizing via signed-in user (thebboysams@gmail.com)
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\thebb\Desktop\FrostApp-backend
+
