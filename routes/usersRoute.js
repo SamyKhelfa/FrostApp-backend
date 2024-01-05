@@ -8,6 +8,12 @@ const uid2 = require("uid2");
 // Route d'inscription
 router.post("/signup", async (req, res) => {
   try {
+    // Vérifier si l'utilisateur existe déjà
+    const existingUser = await User.findOne({ email: req.body.email });
+    if (existingUser) {
+      return res.status(400).json({ message: "Email déjà utilisé" });
+    }
+
     const salt = uid2(16);
     const hash = SHA256(req.body.password + salt).toString(encBase64);
     const token = uid2(16);
@@ -16,9 +22,7 @@ router.post("/signup", async (req, res) => {
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
-      role: req.body.role,
-      profilePicture: req.body.profilePicture,
-      program: req.body.program,
+
       salt: salt,
       hash: hash,
       token: token,
@@ -97,6 +101,72 @@ router.delete("/:id", async (req, res) => {
     } else {
       res.json({ message: "Utilisateur supprimé" });
     }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Route pour mettre à jour le profil d'un utilisateur
+router.put("/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    // Mise à jour des champs de l'utilisateur
+    user.firstName = req.body.firstName || user.firstName;
+    user.lastName = req.body.lastName || user.lastName;
+    user.email = req.body.email || user.email;
+    // ... autres champs à mettre à jour
+
+    await user.save();
+    res.json({ message: "Profil mis à jour", user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Route pour changer le mot de passe d'un utilisateur
+router.put("/change-password/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
+    }
+
+    // Vérifier l'ancien mot de passe
+    const oldHash = SHA256(req.body.oldPassword + user.salt).toString(
+      encBase64
+    );
+    if (oldHash !== user.hash) {
+      return res.status(401).json({ message: "Ancien mot de passe incorrect" });
+    }
+
+    // Mettre à jour avec le nouveau mot de passe
+    user.salt = uid2(16);
+    user.hash = SHA256(req.body.newPassword + user.salt).toString(encBase64);
+
+    await user.save();
+    res.json({ message: "Mot de passe changé avec succès" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Route pour la récupération de mot de passe (email de réinitialisation)
+// Note : Cette route devrait déclencher un processus d'envoi d'email
+router.post("/recover-password", async (req, res) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+    if (!user) {
+      return res.status(404).json({ message: "Email non trouvé" });
+    }
+
+    // Générer un token de réinitialisation et envoyer un email
+    // ... (implémentation de l'envoi d'email)
+
+    res.json({ message: "Email de réinitialisation envoyé" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
