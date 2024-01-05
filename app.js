@@ -4,6 +4,7 @@ const mongoose = require("mongoose");
 const http = require("http");
 const socketIo = require("socket.io");
 const programRoutes = require("./routes/programRoutes");
+const usersRoutes = require("./routes/usersRoute");
 
 const app = express();
 app.use(cors());
@@ -12,6 +13,7 @@ app.use(express.json());
 mongoose.connect("mongodb://127.0.0.1:27017/programs");
 
 app.use("/programs", programRoutes);
+app.use("/users", usersRoutes);
 
 // Créez un serveur HTTP à partir de l'application Express
 const server = http.createServer(app);
