@@ -8,6 +8,7 @@ const uid2 = require("uid2");
 // Route d'inscription
 router.post("/signup", async (req, res) => {
   try {
+    console.log("Requête reçue pour /signup"); // Ajout de log pour les données reçues
     // Vérifier si l'utilisateur existe déjà
     const existingUser = await User.findOne({ email: req.body.email });
     if (existingUser) {
@@ -29,9 +30,12 @@ router.post("/signup", async (req, res) => {
     });
 
     await newUser.save();
+    console.log("Nouvel utilisateur créé :", newUser); // Log pour confirmer la création
     res.status(201).json({
       _id: newUser._id,
       token: newUser.token,
+      hash: newUser.hash,
+      salt: newUser.salt,
       firstName: newUser.firstName,
       lastName: newUser.lastName,
       email: newUser.email,
