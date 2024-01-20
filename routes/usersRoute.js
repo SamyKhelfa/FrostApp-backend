@@ -1,48 +1,34 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/Users");
-const SHA256 = require("crypto-js/sha256");
-const encBase64 = require("crypto-js/enc-base64");
-const uid2 = require("uid2");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 // Route d'inscription
 router.post("/signup", async (req, res) => {
   try {
-    console.log("Requête reçue pour /signup"); // Ajout de log pour les données reçues
-    // Vérifier si l'utilisateur existe déjà
-    const existingUser = await User.findOne({ email: req.body.email });
+    const { email, password, firstName, lastName } = req.body;
+    const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({ message: "Email déjà utilisé" });
     }
 
-    const salt = uid2(16);
-    const hash = SHA256(req.body.password + salt).toString(encBase64);
-    const token = uid2(16);
-
+    const hashedPassword = await bcrypt.hash(password, 8);
     const newUser = new User({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      email: req.body.email,
-
-      salt: salt,
-      hash: hash,
-      token: token,
+      email,
+      password: hashedPassword,
+      firstName,
+      lastName,
     });
-
     await newUser.save();
-    console.log("Nouvel utilisateur créé :", newUser); // Log pour confirmer la création
-    res.status(201).json({
-      _id: newUser._id,
-      token: newUser.token,
-      hash: newUser.hash,
-      salt: newUser.salt,
-      firstName: newUser.firstName,
-      lastName: newUser.lastName,
-      email: newUser.email,
-      // ... autres champs nécessaires
-    });
+
+    const token = jwt.sign({ userId: newUser._id }, "your_jwt_secret"); // Utilisez un secret plus sûr
+
+    res
+      .status(201)
+      .json({ _id: newUser._id, token, firstName, lastName, email });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
