@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
   email: String,
   password: String,
   role: String,
-  profilePicture: String,
+  photo: String,
   program: {
     type: Schema.Types.ObjectId,
     ref: "Program",

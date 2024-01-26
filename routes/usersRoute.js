@@ -3,6 +3,18 @@ const router = express.Router();
 const User = require("../models/Users");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/"); // Le dossier où les fichiers seront stockés
+  },
+  filename: function (req, file, cb) {
+    cb(null, new Date().toISOString() + "-" + file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 // Route d'inscription
 router.post("/signup", async (req, res) => {
@@ -36,25 +48,33 @@ router.post("/signup", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
-    if (user) {
-      const newHash = SHA256(req.body.password + user.salt).toString(encBase64);
-      if (newHash === user.hash) {
-        res.status(200).json({
-          _id: user._id,
-          token: user.token,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email,
-          // ... autres champs nécessaires
-        });
-      } else {
-        res.status(401).json({ message: "Mot de passe incorrect" });
-      }
-    } else {
-      res.status(404).json({ message: "Utilisateur non trouvé" });
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
+
+    // Si vous utilisez bcrypt pour les mots de passe
+    const isMatch = await bcrypt.compare(req.body.password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Mot de passe incorrect" });
+    }
+
+    // Si vous utilisez SHA256 et salt
+    // const newHash = SHA256(req.body.password + user.salt).toString(encBase64);
+    // if (newHash !== user.hash) {
+    //   return res.status(401).json({ message: "Mot de passe incorrect" });
+    // }
+
+    const token = jwt.sign({ userId: user._id }, "your_jwt_secret");
+    res.status(200).json({
+      _id: user._id,
+      token,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      // ... autres champs nécessaires
+    });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -161,5 +181,31 @@ router.post("/recover-password", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+router.post(
+  "/profile/:id/upload-photo",
+  upload.single("photo"),
+  async (req, res) => {
+    try {
+      const user = await User.findById(req.params.id);
+
+      if (!user) {
+        return res.status(404).send("Utilisateur non trouvé");
+      }
+
+      user.photo = req.file.path; // Enregistrez le chemin du fichier dans l'attribut photo de l'utilisateur
+      await user.save();
+
+      res
+        .status(200)
+        .json({
+          message: "Photo téléchargée avec succès",
+          photoPath: req.file.path,
+        });
+    } catch (error) {
+      res.status(500).send(error.message);
+    }
+  }
+);
 
 module.exports = router;
