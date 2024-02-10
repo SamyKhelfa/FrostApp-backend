@@ -7,7 +7,7 @@ const multer = require("multer");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); // Le dossier où les fichiers seront stockés
+    cb(null, "../uploads"); // Le dossier où les fichiers seront stockés
   },
   filename: function (req, file, cb) {
     cb(null, new Date().toISOString() + "-" + file.originalname);
@@ -182,28 +182,24 @@ router.post("/recover-password", async (req, res) => {
   }
 });
 
-router.post(
-  "/profile/:id/upload-photo",
-  upload.single("photo"),
-  async (req, res) => {
-    try {
-      const user = await User.findById(req.params.id);
+router.post("/:id/upload-photo", upload.single("photo"), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
 
-      if (!user) {
-        return res.status(404).send("Utilisateur non trouvé");
-      }
-
-      user.photo = req.file.path; // Enregistrez le chemin du fichier dans l'attribut photo de l'utilisateur
-      await user.save();
-
-      res.status(200).json({
-        message: "Photo téléchargée avec succès",
-        photoPath: req.file.path,
-      });
-    } catch (error) {
-      res.status(500).send(error.message);
+    if (!user) {
+      return res.status(404).send("Utilisateur non trouvé");
     }
+
+    user.photo = req.file.path; // Enregistrez le chemin du fichier dans l'attribut photo de l'utilisateur
+    await user.save();
+
+    res.status(200).json({
+      message: "Photo téléchargée avec succès",
+      photoPath: req.file.path,
+    });
+  } catch (error) {
+    res.status(500).send(error.message);
   }
-);
+});
 
 module.exports = router;
